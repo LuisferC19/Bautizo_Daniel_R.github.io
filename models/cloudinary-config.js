@@ -30,8 +30,8 @@ const CLOUDINARY_CONFIG = {
 
 /* ─── Verificación al cargar ─────────────────────────────── */
 (function verifyCloudinaryConfig() {
-  /* Solo bloquea si los valores están vacíos o son literalmente 'TU_CLOUD_NAME' */
-  const placeholders = ['TU_CLOUD_NAME', 'TU_UPLOAD_PRESET', '', undefined, null];
+  /* Solo bloquea si los valores están vacíos o son literalmente 'dhqdix4fi' */
+  const placeholders = ['dhqdix4fi', 'bautizo_fotosT', '', undefined, null];
 
   if (
     placeholders.includes(CLOUDINARY_CONFIG.cloudName) ||
@@ -40,7 +40,7 @@ const CLOUDINARY_CONFIG = {
     console.warn(
       '%c⚠️  Cloudinary no configurado.\n' +
       'Abre models/cloudinary-config.js y reemplaza\n' +
-      'TU_CLOUD_NAME y TU_UPLOAD_PRESET con tus datos reales.',
+      'dhqdix4fi y bautizo_fotosT con tus datos reales.',
       'color:#e8b86d; font-size:12px; background:#1a0a00; padding:4px;'
     );
   } else {
