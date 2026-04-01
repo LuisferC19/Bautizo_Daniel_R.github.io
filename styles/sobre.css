@@ -1,0 +1,361 @@
+
+/* ─── Variables ───────────────────────────────── */
+:root {
+  --azul-oscuro:    #0b2255;
+  --azul-medio:     #1a3f8f;
+  --azul-claro:     #3a6ec7;
+  --dorado:         #c9a84c;
+  --dorado-claro:   #e2c97e;
+  --dorado-oscuro:  #9a7630;
+  --plateado:       #b8c8d8;
+  --plateado-claro: #dce8f0;
+  --blanco:         #ffffff;
+}
+
+/* ─── Reset base ──────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* ─── Fondo degradado azul profundo ───────────── */
+body {
+  background: radial-gradient(
+    ellipse at 25% 25%,
+    #1a3f8f 0%,
+    #0b2255 45%,
+    #060f2a 100%
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Halos de luz en el fondo */
+body::before {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(201,168,76,.07) 0%, transparent 38%),
+    radial-gradient(circle at 85% 80%, rgba(201,168,76,.06) 0%, transparent 38%),
+    radial-gradient(circle at 50% 50%, rgba(58,110,199,.08) 0%, transparent 60%);
+  animation: bgPulse 14s ease-in-out infinite;
+}
+@keyframes bgPulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .7; }
+}
+
+/* Estrellas puntiformes estáticas */
+body::after {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    radial-gradient(1px 1px at  8% 18%, rgba(255,255,255,.55) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 68%, rgba(255,255,255,.40) 0%, transparent 100%),
+    radial-gradient(1px 1px at 47% 38%, rgba(255,255,255,.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 68% 12%, rgba(255,255,255,.50) 0%, transparent 100%),
+    radial-gradient(1px 1px at 88% 58%, rgba(255,255,255,.45) 0%, transparent 100%),
+    radial-gradient(1px 1px at 18% 88%, rgba(255,255,255,.30) 0%, transparent 100%),
+    radial-gradient(2px 2px at 78% 28%, rgba(201,168,76,.75) 0%, transparent 100%),
+    radial-gradient(1px 1px at 38% 52%, rgba(201,168,76,.50) 0%, transparent 100%),
+    radial-gradient(2px 2px at 58% 78%, rgba(201,168,76,.60) 0%, transparent 100%),
+    radial-gradient(1px 1px at 12% 43%, rgba(201,168,76,.40) 0%, transparent 100%);
+  animation: starTwinkle 9s ease-in-out infinite alternate;
+}
+@keyframes starTwinkle {
+  0%   { opacity: .6; }
+  100% { opacity: 1.0; }
+}
+
+/* ─── Canvas partículas ───────────────────────── */
+#particles {
+  position: fixed; inset: 0;
+  z-index: 1; pointer-events: none;
+}
+
+/* ─── Overlay de transición ───────────────────── */
+.page-overlay {
+  position: fixed; inset: 0;
+  background: var(--azul-oscuro);
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .8s ease;
+}
+.page-overlay.fade-in {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ─── Escena ──────────────────────────────────── */
+.envelope-scene {
+  position: relative; z-index: 10;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 34px;
+}
+
+/* ─── Texto hint superior ─────────────────────── */
+.invite-hint {
+  color: var(--plateado-claro);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem; font-weight: 300; font-style: italic;
+  letter-spacing: 3px; text-transform: uppercase;
+  opacity: 0;
+  animation: fadeHint 1.6s ease forwards 1s;
+}
+@keyframes fadeHint { to { opacity: .8; } }
+
+/* ─── Wrapper 3D ──────────────────────────────── */
+.envelope-wrapper {
+  perspective: 1800px;
+  transform-style: preserve-3d;
+}
+
+/* ─── El sobre ────────────────────────────────── */
+.envelope {
+  width: 420px; height: 290px;
+  position: relative;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform .5s cubic-bezier(.175,.885,.32,1.275);
+  filter: drop-shadow(0 30px 60px rgba(0,0,0,.6));
+  animation: envelopeFloat 4s ease-in-out infinite;
+}
+@keyframes envelopeFloat {
+  0%,100% { transform: translateY(0)     rotateX(2deg); }
+  50%      { transform: translateY(-14px) rotateX(0deg); }
+}
+.envelope:hover {
+  animation: none;
+  transform: translateY(-20px) rotateX(6deg) scale(1.03);
+  filter: drop-shadow(0 40px 80px rgba(0,0,0,.7))
+          drop-shadow(0 0 30px rgba(201,168,76,.3));
+}
+
+/* ── Cuerpo del sobre ─────────────────────────── */
+.env-body {
+  position: absolute; inset: 0;
+  border-radius: 12px;
+  overflow: visible;
+  background: linear-gradient(160deg, #0e2d6e 0%, #0b2255 40%, #091a45 100%);
+  box-shadow:
+    inset 0 -4px 20px rgba(0,0,0,.4),
+    inset 0  1px  0   rgba(201,168,76,.15),
+    0 0 0 1px rgba(201,168,76,.20),
+    0 0 0 2px rgba(201,168,76,.08);
+}
+.env-body::before {
+  content: "";
+  position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(135deg,
+    rgba(201,168,76,.04) 0%, transparent 50%,
+    rgba(201,168,76,.03) 100%);
+  border-radius: 12px;
+}
+.env-body::after {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 40%;
+  background: linear-gradient(180deg, rgba(255,255,255,.06) 0%, transparent 100%);
+  z-index: 0; border-radius: 12px 12px 0 0;
+}
+
+/* ── Borde dorado interior ────────────────────── */
+.env-border {
+  position: absolute; inset: 6px;
+  border: 1.5px solid rgba(201,168,76,.35);
+  border-radius: 8px; pointer-events: none; z-index: 3;
+}
+.env-border::before {
+  content: "";
+  position: absolute; inset: 4px;
+  border: .5px solid rgba(201,168,76,.15);
+  border-radius: 5px;
+}
+
+/* ── Triángulos decorativos ───────────────────── */
+.env-bottom {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
+  background: linear-gradient(180deg, transparent 0%, rgba(5,15,40,.3) 100%);
+  clip-path: polygon(0 100%, 50% 0%, 100% 100%);
+  z-index: 1;
+}
+.env-left {
+  position: absolute; top: 0; left: 0; width: 50%; height: 100%;
+  background: linear-gradient(135deg, rgba(26,63,143,.2) 0%, transparent 100%);
+  clip-path: polygon(0 0, 0 100%, 50% 50%);
+  z-index: 1;
+}
+.env-right {
+  position: absolute; top: 0; right: 0; width: 50%; height: 100%;
+  background: linear-gradient(225deg, rgba(26,63,143,.15) 0%, transparent 100%);
+  clip-path: polygon(100% 0, 100% 100%, 50% 50%);
+  z-index: 1;
+}
+
+/* ── Contenido interior ───────────────────────── */
+.env-content {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 30px 28px;
+  z-index: 2; gap: 7px;
+}
+.env-title {
+  font-family: 'Great Vibes', cursive;
+  font-size: 2.9rem;
+  color: var(--dorado-claro);
+  text-shadow: 0 2px 16px rgba(201,168,76,.6);
+  line-height: 1.1;
+}
+.env-subtitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .65rem; color: var(--plateado);
+  letter-spacing: 4px; text-transform: uppercase; font-weight: 300;
+}
+.env-line {
+  width: 120px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--dorado), transparent);
+  margin: 3px 0;
+}
+.env-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem; color: var(--blanco);
+  letter-spacing: 3px; text-transform: uppercase; font-weight: 300;
+}
+
+/* ── Sello de cera dorado ─────────────────────── */
+.env-seal {
+  position: absolute; bottom: 22%; left: 50%;
+  transform: translateX(-50%);
+  width: 68px; height: 68px; z-index: 4;
+}
+.seal-circle {
+  width: 68px; height: 68px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%,
+    #e2c97e 0%, #c9a84c 40%, #a07c2a 100%);
+  box-shadow:
+    0 4px 20px rgba(0,0,0,.6),
+    0 0 0 2px  rgba(201,168,76,.65),
+    0 0 0 5px  rgba(201,168,76,.15),
+    inset 0  2px 4px rgba(255,255,255,.30),
+    inset 0 -2px 4px rgba(0,0,0,.30);
+  display: flex; align-items: center; justify-content: center;
+  animation: sealGlow 3s ease-in-out infinite;
+}
+@keyframes sealGlow {
+  0%,100% { box-shadow: 0 4px 20px rgba(0,0,0,.6), 0 0 0 2px rgba(201,168,76,.6), 0 0 0 5px rgba(201,168,76,.15), inset 0 2px 4px rgba(255,255,255,.3), inset 0 -2px 4px rgba(0,0,0,.3); }
+  50%      { box-shadow: 0 4px 30px rgba(0,0,0,.5), 0 0 0 2px rgba(226,201,126,.8), 0 0 20px rgba(201,168,76,.5), inset 0 2px 4px rgba(255,255,255,.3), inset 0 -2px 4px rgba(0,0,0,.3); }
+}
+.seal-cross {
+  position: relative; width: 24px; height: 24px;
+}
+.seal-cross::before {
+  content: "";
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 4px; height: 24px;
+  background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(160,110,25,.8));
+  border-radius: 2px;
+}
+.seal-cross::after {
+  content: "";
+  position: absolute; top: 30%; left: 0;
+  width: 24px; height: 4px;
+  background: linear-gradient(90deg, rgba(160,110,25,.8), rgba(255,255,255,.9), rgba(160,110,25,.8));
+  border-radius: 2px;
+}
+
+/* ── Solapa ───────────────────────────────────── */
+.env-flap {
+  position: absolute; top: 0; left: 0; right: 0; height: 100%;
+  z-index: 5;
+  transform-origin: top center;
+  transition: transform 1.4s cubic-bezier(.68,-.55,.265,1.55);
+  transform-style: preserve-3d;
+  clip-path: polygon(0 0, 100% 0, 50% 58%);
+}
+.flap-front {
+  position: absolute; inset: 0;
+  background: linear-gradient(160deg, #0f3380 0%, #0b2255 60%, #091840 100%);
+  clip-path: polygon(0 0, 100% 0, 50% 58%);
+  border-radius: 12px 12px 0 0;
+}
+.flap-front::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(160deg, rgba(255,255,255,.07) 0%, transparent 50%);
+  clip-path: polygon(0 0, 100% 0, 50% 58%);
+}
+.flap-front::after {
+  content: "";
+  position: absolute; top: 8px; left: 10px; right: 10px; height: 50%;
+  border-top:   1px solid rgba(201,168,76,.30);
+  border-left:  1px solid rgba(201,168,76,.20);
+  border-right: 1px solid rgba(201,168,76,.20);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.flap-angel {
+  position: absolute; top: 11px; left: 50%; transform: translateX(-50%);
+  font-size: 22px; z-index: 6;
+  animation: angelBob 3.2s ease-in-out infinite;
+}
+@keyframes angelBob {
+  0%,100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(-4px); }
+}
+
+/* ─── Texto hint inferior ─────────────────────── */
+.tap-hint {
+  display: flex; align-items: center; gap: 14px;
+  color: var(--plateado);
+  font-size: .75rem; letter-spacing: 3px;
+  text-transform: uppercase; font-weight: 300;
+  opacity: 0;
+  animation: fadeHint 1.6s ease forwards 2.2s;
+}
+.tap-hint::before {
+  content: "";
+  width: 32px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--dorado));
+}
+.tap-hint::after {
+  content: "";
+  width: 32px; height: 1px;
+  background: linear-gradient(90deg, var(--dorado), transparent);
+}
+
+/* ─── Animación de apertura ───────────────────── */
+.envelope-scene.opening .env-flap {
+  transform: rotateX(-180deg);
+}
+.envelope-scene.opening .envelope {
+  animation: none;
+  transform: translateY(-20px) scale(1.05);
+}
+.envelope-scene.flying .envelope {
+  animation: flyAway 1.2s cubic-bezier(.4,0,.2,1) forwards;
+}
+@keyframes flyAway {
+  0%   { transform: translateY(-20px) scale(1.05); opacity: 1; }
+  100% { transform: translateY(-160vh) scale(.18) rotateZ(15deg); opacity: 0; }
+}
+.envelope-scene.flying .invite-hint,
+.envelope-scene.flying .tap-hint {
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+
+/* ─── Responsive ──────────────────────────────── */
+@media (max-width: 480px) {
+  .envelope  { width: 310px; height: 215px; }
+  .env-title { font-size: 2.3rem; }
+  .env-name  { font-size: .9rem; }
+  .env-line  { width: 86px; }
+  .seal-circle, .env-seal { width: 54px; height: 54px; }
+}

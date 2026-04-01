@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invitación · Mi Bautizo de Daniel De angel Rosales</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Great+Vibes&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Hoja de estilos del sobre -->
+  <link rel="stylesheet" href="styles/sobre.css">
+</head>
+<body>
+
+  <!-- Canvas de partículas doradas -->
+  <canvas id="particles"></canvas>
+
+  <!-- Overlay de transición al abrir -->
+  <div class="page-overlay" id="pageOverlay"></div>
+
+  <!-- ══════════════════════════════════ -->
+  <!--  ESCENA PRINCIPAL DEL SOBRE       -->
+  <!-- ══════════════════════════════════ -->
+  <div class="envelope-scene" id="envelopeScene">
+
+    <p class="invite-hint">✦ Estas invitado a mi bautizo ✦</p>
+
+    <div class="envelope-wrapper">
+      <div class="envelope" id="envelope">
+
+        <!-- Cuerpo -->
+        <div class="env-body">
+          <div class="env-left"></div>
+          <div class="env-right"></div>
+          <div class="env-bottom"></div>
+          <div class="env-border"></div>
+
+          <!-- Texto interior -->
+          <div class="env-content">
+            <span class="env-title">Mi bautizo </span>
+            <div class="env-line"></div>
+            <span class="env-name">Daniel De angel Rosales</span>
+            <div class="env-line"></div>
+            <span class="env-subtitle">25 · Abril · 2026</span>
+          </div>
+
+          <!-- Sello de cera -->
+          <div class="env-seal">
+            <div class="seal-circle">
+              <div class="seal-cross"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Solapa con ángel -->
+        <div class="env-flap">
+          <div class="flap-front"></div>
+          
+        </div>
+
+      </div>
+    </div>
+
+    <p class="tap-hint">Toca para abrir</p>
+
+  </div>
+
+  <script src="scripts/sobre.js"></script>
+</body>
+</html>

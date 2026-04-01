@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi Bautizo · Daniel De Angel Rosales</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Great+Vibes&family=Montserrat:wght@200;300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- ✅ CORREGIDO: Cloudinary Upload Widget -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+
+    <!-- ✅ CORREGIDO: Firebase SDK — comentario cerrado correctamente -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+    <!-- Hoja de estilos -->
+    <link rel="stylesheet" href="styles/invitacion.css" />
+  </head>
+  <body>
+    <!-- ═══════════════════════════════════════════════
+       🎵 REPRODUCTOR DE MÚSICA CON CONTROLES
+       Barra fija al fondo de la pantalla
+  ═══════════════════════════════════════════════ -->
+    <div class="music-player-bar" id="musicPlayerBar">
+      <div class="music-player-inner">
+        <div class="music-info">
+          <span class="music-note-icon">🎵</span>
+          <span class="music-label">Música del Bautizo de Daniel</span>
+        </div>
+
+        <audio
+          id="music"
+          controls
+          loop
+          preload="metadata"
+          class="music-audio-control"
+        >
+          <source src="musica/MusicaDeFondo.mp3" type="audio/mpeg" />
+          Tu navegador no soporta el audio.
+        </audio>
+      </div>
+    </div>
+
+    <!-- Canvas de partículas -->
+    <canvas id="particles"></canvas>
+
+    <!-- Toggle Modo Oscuro/Claro -->
+    <button
+      class="dark-mode-toggle"
+      id="darkModeToggle"
+      aria-label="Cambiar modo"
+    >
+      <span class="sun">☀️</span>
+      <span class="moon">🌙</span>
+    </button>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!--  INVITACIÓN PRINCIPAL                      -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="invitation-wrapper" id="invitationWrapper">
+      <!-- Puntos decorativos -->
+      <div class="decoration-top scroll-fade">
+        <div class="deco-circle"></div>
+        <div class="deco-circle"></div>
+        <div class="deco-circle"></div>
+      </div>
+
+      <!-- ─────────────────────────────────────── -->
+      <!--  ★ IMAGEN DEL ÁNGEL                     -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="angel-hero scroll-fade">
+        <div class="angel-hero-frame">
+          <img
+            src="imagenes/angel.jpg"
+            alt="Ángel de Daniel De Angel Rosales"
+            class="angel-img"
+            onerror="
+              this.outerHTML =
+                '<div class=\'angel-placeholder\'><span class=\'angel-emoji\'>👼</span><small>Coloca angel.jpg en /imagenes</small></div>'
+            "
+          />
+        </div>
+      </div>
+
+      <!-- Header -->
+      <div class="invitation-header scroll-fade">
+        <p class="main-title">MI BAUTIZO</p>
+        <h1 class="baby-name">Daniel De Angel Rosales</h1>
+        <div class="header-divider"><span>✦</span></div>
+      </div>
+
+      <!-- Mensaje -->
+      <div class="main-message card-3d scroll-fade">
+        <p>Señor, hoy ponemos en tus manos la vida de nuestro hijo.</p>
+        <p>
+          Te pedimos que lo llenes de amor, fe y esperanza en cada paso que dé.
+        </p>
+        <p>Que tu luz lo acompañe siempre y lo guíe por el camino del bien.</p>
+        <p>Que nunca le falte amor, salud y fe para enfrentar cada momento.</p>
+        <span class="highlight"
+          >Y a nosotros danos la sabiduría para cuidarlo y enseñarle a
+          seguirte.</span
+        >
+      </div>
+
+      <div class="section-divider">
+        <span class="section-divider-icon">✦</span>
+      </div>
+
+      <!-- Mamá y Madrina -->
+      <div class="parents-section scroll-fade">
+        <div class="info-card card-3d">
+          <span class="card-icon">🌸</span>
+          <span class="script-title">Mi Mamá</span>
+          <div class="names-list">
+            <p class="parent-label">Nayeli Rosales Serrano</p>
+          </div>
+        </div>
+        <div class="info-card card-3d">
+          <span class="card-icon">🕊️</span>
+          <span class="script-title">Mi Madrina</span>
+          <div class="names-list">
+            <p class="parent-label">Guadalupe Apanco Pérez</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fecha -->
+      <div class="date-section scroll-fade">
+        <div class="date-display">
+          <div class="date-line"></div>
+          <div class="date-content">
+            <span class="day-name">Sábado</span>
+            <div class="date-main">
+              <span class="month">Abril</span>
+              <span class="day-number">25</span>
+              <span class="year">2026</span>
+            </div>
+          </div>
+          <div class="date-line"></div>
+        </div>
+      </div>
+
+      <!-- Contador -->
+      <div class="countdown-section scroll-fade">
+        <p class="section-subtitle">Faltan...</p>
+        <div class="countdown">
+          <div class="countdown-item card-3d">
+            <span id="days" class="countdown-number">0</span>
+            <small>Días</small>
+          </div>
+          <div class="countdown-item card-3d">
+            <span id="hours" class="countdown-number">0</span>
+            <small>Horas</small>
+          </div>
+          <div class="countdown-item card-3d">
+            <span id="minutes" class="countdown-number">0</span>
+            <small>Minutos</small>
+          </div>
+          <div class="countdown-item card-3d">
+            <span id="seconds" class="countdown-number">0</span>
+            <small>Segundos</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider">
+        <span class="section-divider-icon">✦</span>
+      </div>
+
+      <!-- Misa y Recepción -->
+      <div class="events-section scroll-fade">
+        <div class="event-card card-3d">
+          <span class="script-title">Misa</span>
+          <div class="event-details">
+            <p class="venue-name">Iglesia de San Mateo Apóstol</p>
+            <p class="address">
+              Cuéllar Nte. #4, Centro<br />Tepetitla de Lardizábal
+            </p>
+            <p class="time">⏰ 10:00 am</p>
+            <button class="location-btn" onclick="openLocationModal('misa')">
+              📍 Ver Ubicación
+            </button>
+          </div>
+        </div>
+        <div class="event-card card-3d">
+          <span class="script-title">Recepción</span>
+          <div class="event-details">
+            <p class="venue-name"></p>
+            <p class="address">
+              Calle Narciso Mendoza<br />Tepetitla de Lardizábal
+            </p>
+            <p class="time">⏰ 2:00 pm</p>
+            <button
+              class="location-btn"
+              onclick="openLocationModal('recepcion')"
+            >
+              📍 Ver Ubicación
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────────── -->
+      <!--  MINI MAPAS EMBEBIDOS                   -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="maps-section scroll-fade">
+        <p class="maps-section-title">Cómo llegar</p>
+        <div class="maps-grid">
+          <!-- Mapa Iglesia -->
+          <div class="map-container">
+            <div class="map-header">
+              <span class="map-header-icon">⛪</span>
+              <div class="map-header-info">
+                <h4>Iglesia de San Mateo Apóstol</h4>
+                <p>Tepetitla de Lardizábal · 10:00 am</p>
+              </div>
+            </div>
+            <div class="map-frame-wrapper">
+              <!--
+              ✅ CORREGIDO: embed estándar (no Street View)
+              Coordenadas extraídas de tu URL original
+            -->
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!4v1775014672544!6m8!1m7!1s0es_xORQxb1mU6-4ogC5Fw!2m2!1d19.26819198361658!2d-98.38267078623882!3f105.40723767826094!4f1.0565927237007742!5f0.4000000000000002"
+                width="600"
+                height="450"
+                style="border: 0"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+          </div>
+
+          <!-- Mapa Salón -->
+          <div class="map-container">
+            <div class="map-header">
+              <span class="map-header-icon">🏛️</span>
+              <div class="map-header-info">
+                <h4>Salón de Recepción</h4>
+                <p>Calle Narciso Mendoza · 2:00 pm</p>
+              </div>
+            </div>
+            <div class="map-frame-wrapper">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!4v1775014535471!6m8!1m7!1sfRYaxNzVvzkbfvWi80Jyaw!2m2!1d19.270454989668!2d-98.38424258092742!3f347.8753302936115!4f2.7435153766125495!5f0.4000000000000002"
+                width="600"
+                height="450"
+                style="border: 0"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal de mapa ampliado -->
+      <div class="map-modal hidden" id="mapModal">
+        <div class="map-overlay" onclick="closeLocationModal()"></div>
+        <div class="map-content card-3d">
+          <button class="close-map" onclick="closeLocationModal()">✕</button>
+          <iframe
+            id="mapFrame"
+            allowfullscreen
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
+
+      <div class="section-divider">
+        <span class="section-divider-icon">✦</span>
+      </div>
+
+      <!-- RSVP -->
+      <div class="rsvp-section card-3d scroll-fade">
+        <h3 class="section-title">Confirma tu Asistencia</h3>
+        <p class="rsvp-subtitle">
+          Nos encantaría contar con tu presencia en este día tan especial para
+          nosotros
+        </p>
+
+        <form class="rsvp-form" id="rsvpForm" novalidate>
+          <div class="form-group">
+            <label for="guestName">Nombre Completo *</label>
+            <input
+              type="text"
+              id="guestName"
+              required
+              placeholder="Escribe tu nombre completo"
+            />
+            <span class="input-line"></span>
+            <span class="validation-icon"></span>
+          </div>
+          <div class="form-group">
+            <label for="guestCount">Número de personas *</label>
+            <select id="guestCount" required>
+              <option value="">Selecciona cantidad</option>
+              <option value="1">1 persona</option>
+              <option value="2">2 personas</option>
+              <option value="3">3 personas</option>
+              <option value="4">4 personas</option>
+              <option value="5">5 o más personas</option>
+            </select>
+            <span class="input-line"></span>
+            <span class="validation-icon"></span>
+          </div>
+          <button type="submit" class="submit-btn">
+            <span class="btn-content">
+              <span class="btn-icon">💬</span>
+              <span class="btn-text">Confirmar por WhatsApp</span>
+            </span>
+          </button>
+        </form>
+
+        <div class="rsvp-success hidden" id="rsvpSuccess">
+          <div class="success-icon">✓</div>
+          <h4>¡Gracias por confirmar!</h4>
+          <p>Nos vemos en la celebración 💙</p>
+        </div>
+      </div>
+
+      <div class="section-divider">
+        <span class="section-divider-icon">✦</span>
+      </div>
+
+      <!-- ─────────────────────────────────────── -->
+      <!--  ★ COMPARTIR FOTOS                      -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="photos-section scroll-fade">
+        <p class="photos-title">Comparte tus Fotos</p>
+        <p class="photos-subtitle">
+          Captura y comparte los momentos más especiales del bautizo de Daniel
+          con todos
+        </p>
+
+        <!-- ESTADO BLOQUEADO -->
+        <div class="card-3d photos-locked" id="photosLocked">
+          <div class="lock-icon-wrapper">
+            <span class="lock-icon">🔒</span>
+          </div>
+          <p class="lock-title">La galería se abrirá el día del evento</p>
+          <p class="lock-desc">
+            Esta sección se activará automáticamente el
+            <strong>25 de abril de 2026 a las 10:00 am</strong>
+            para que todos puedan compartir sus fotos
+          </p>
+          <div class="lock-countdown">
+            <div class="lock-cd-item">
+              <span class="lock-cd-num" id="pDays">0</span>
+              <span class="lock-cd-label">Días</span>
+            </div>
+            <div class="lock-cd-item">
+              <span class="lock-cd-num" id="pHours">0</span>
+              <span class="lock-cd-label">Horas</span>
+            </div>
+            <div class="lock-cd-item">
+              <span class="lock-cd-num" id="pMinutes">0</span>
+              <span class="lock-cd-label">Min</span>
+            </div>
+            <div class="lock-cd-item">
+              <span class="lock-cd-num" id="pSeconds">0</span>
+              <span class="lock-cd-label">Seg</span>
+            </div>
+          </div>
+
+          <!--
+          ════════════════════════════════════════
+          🧪 BOTÓN DE PRUEBA — Solo para desarrollo
+          Descomenta para simular galería desbloqueada.
+          Comenta de nuevo antes de publicar.
+          ════════════════════════════════════════
+        -->
+          <button onclick="TEST_unlockGallery()" class="test-btn">
+            🧪 Probar galería ahora
+          </button>
+        </div>
+
+        <!-- ESTADO DESBLOQUEADO -->
+        <div class="photos-unlocked hidden" id="photosUnlocked">
+          <button class="upload-btn" id="uploadBtn" onclick="openPhotoUpload()">
+            <span>📷</span> Subir mi foto
+          </button>
+          <div class="photos-gallery" id="photosGallery">
+            <div class="gallery-empty" id="galleryEmpty">
+              <span class="gallery-empty-icon">🌟</span>
+              <p>¡Sé el primero en compartir una foto!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="invitation-footer scroll-fade">
+        <span class="thanks-message">¡Esperamos verte pronto!</span>
+        <div class="footer-decoration"></div>
+        <span class="footer-sub">Daniel · Bautizo · 25 de Abril, 2026</span>
+      </div>
+    </div>
+    <!-- /invitation-wrapper -->
+
+    <!-- ══════════════════════════════════════════
+       SCRIPTS — orden obligatorio
+  ══════════════════════════════════════════ -->
+    <script src="models/cloudinary-config.js"></script>
+    <script src="models/firebase-config.js"></script>
+    <script src="scripts/invitacion.js"></script>
+  </body>
+</html>
