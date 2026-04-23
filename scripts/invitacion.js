@@ -16,7 +16,7 @@ const CONFIG = {
 
 /* ─── MODO DE PRUEBA ────────────────────────────── */
 /* Pon false antes de publicar el día del evento     */
-const TEST_MODE = true;
+const TEST_MODE = false;
 
 /* ─── REFERENCIAS DOM ───────────────────────────── */
 const darkModeToggle = document.getElementById('darkModeToggle');
