@@ -3,37 +3,22 @@
    Bautizo de Daniel De Angel Rosales · 25 Abril 2026
    ═══════════════════════════════════════════════════ */
 
-/* ═══════════════════════════════════════════════════
-   ⚙️  CONFIGURACIÓN — Edita estos valores
-   ═══════════════════════════════════════════════════ */
+/* ─── CONFIGURACIÓN ─────────────────────────────── */
 const CONFIG = {
-  /* Fecha del bautizo: 25 de abril de 2026 a las 10:00 am */
-  eventDate: new Date(2026, 3, 25, 10, 0, 0),  // mes 3 = abril (0-indexed)
-
-  /* WhatsApp: formato 52 + 10 dígitos */
-  whatsappNumber: '522482406624',   // ⚙️ CAMBIA ESTO por tu número real
-
-  /* URLs de Google Maps para el modal "Ver Ubicación" */
+  eventDate:      new Date(2026, 3, 25, 10, 0, 0),
+  whatsappNumber: '522482406624',
   mapUrls: {
     misa:      'https://maps.google.com/maps?q=19.26819198361658,-98.38267078623882&z=17&output=embed',
     recepcion: 'https://maps.google.com/maps?q=19.270454989668,-98.38424258092742&z=17&output=embed'
   },
-
-  /* Nombre del bebé para mensajes */
   babyName: 'Daniel De Angel Rosales'
 };
 
-/* ═══════════════════════════════════════════════════
-   🧪 MODO DE PRUEBA
-   Pon TEST_MODE = true para simular que el evento
-   ya llegó y probar la galería de fotos sin esperar.
-   Recuerda ponerlo en false antes de publicar.
-   ═══════════════════════════════════════════════════ */
+/* ─── MODO DE PRUEBA ────────────────────────────── */
+/* Pon false antes de publicar el día del evento     */
 const TEST_MODE = true;
 
-/* ═══════════════════════════════════════════════════
-   REFERENCIAS DOM
-   ═══════════════════════════════════════════════════ */
+/* ─── REFERENCIAS DOM ───────────────────────────── */
 const darkModeToggle = document.getElementById('darkModeToggle');
 const rsvpForm       = document.getElementById('rsvpForm');
 const rsvpSuccess    = document.getElementById('rsvpSuccess');
@@ -43,6 +28,138 @@ const mapModal       = document.getElementById('mapModal');
 const mapFrame       = document.getElementById('mapFrame');
 const particlesEl    = document.getElementById('particles');
 const music          = document.getElementById('music');
+
+/* ═══════════════════════════════════════════════════
+   🎵 AUTOPLAY DE MÚSICA
+   Intenta reproducir al cargar; si el navegador lo
+   bloquea, arranca en el primer gesto del usuario.
+   ═══════════════════════════════════════════════════ */
+(function initAutoplay() {
+  if (!music) return;
+  music.volume = 0.7;
+  const p = music.play();
+  if (p !== undefined) {
+    p.catch(() => {
+      const start = () => {
+        music.play().catch(() => {});
+        ['click','touchstart','keydown','scroll'].forEach(ev =>
+          document.removeEventListener(ev, start));
+      };
+      ['click','touchstart','keydown','scroll'].forEach(ev =>
+        document.addEventListener(ev, start, { once: true, passive: true }));
+    });
+  }
+})();
+
+/* ═══════════════════════════════════════════════════
+   LIGHTBOX — declarado PRIMERO para que todo lo que
+   llame a addPhotoToGallery pueda usarlo sin error
+   ═══════════════════════════════════════════════════ */
+const LB = {
+  photos:  [],
+  current: 0,
+  el:      null,
+  img:     null,
+  counter: null,
+  startX:  0,
+};
+
+function initLightbox() {
+  if (document.getElementById('lightbox')) return;
+  const lb = document.createElement('div');
+  lb.id        = 'lightbox';
+  lb.className = 'lightbox';
+  lb.innerHTML = `
+    <button class="lb-close" id="lbClose">✕</button>
+    <div class="lightbox-img-wrap">
+      <button class="lb-arrow left"  id="lbPrev">&#8592;</button>
+      <img id="lbImg" src="" alt="Foto del bautizo" />
+      <button class="lb-arrow right" id="lbNext">&#8594;</button>
+    </div>
+    <div class="lb-counter" id="lbCounter"></div>
+  `;
+  document.body.appendChild(lb);
+  LB.el      = lb;
+  LB.img     = document.getElementById('lbImg');
+  LB.counter = document.getElementById('lbCounter');
+
+  document.getElementById('lbClose').addEventListener('click', closeLightbox);
+  document.getElementById('lbPrev').addEventListener('click', () => moveLightbox(-1));
+  document.getElementById('lbNext').addEventListener('click', () => moveLightbox(1));
+  lb.addEventListener('click', e => { if (e.target === lb) closeLightbox(); });
+
+  document.addEventListener('keydown', e => {
+    if (!lb.classList.contains('active')) return;
+    if (e.key === 'ArrowLeft')  moveLightbox(-1);
+    if (e.key === 'ArrowRight') moveLightbox(1);
+    if (e.key === 'Escape')     closeLightbox();
+  });
+
+  lb.addEventListener('touchstart', e => { LB.startX = e.touches[0].clientX; }, { passive: true });
+  lb.addEventListener('touchend',   e => {
+    const diff = LB.startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) moveLightbox(diff > 0 ? 1 : -1);
+  });
+}
+
+function openLightbox(index) {
+  initLightbox();
+  LB.current = index;
+  updateLightboxImg();
+  LB.el.classList.add('active');
+  document.body.classList.add('lb-open');
+}
+
+function closeLightbox() {
+  if (LB.el) LB.el.classList.remove('active');
+  document.body.classList.remove('lb-open');
+}
+
+function moveLightbox(dir) {
+  LB.current = (LB.current + dir + LB.photos.length) % LB.photos.length;
+  updateLightboxImg();
+}
+
+function updateLightboxImg() {
+  const p = LB.photos[LB.current];
+  if (!p) return;
+  LB.img.src = p.url;
+  LB.counter.textContent = `${LB.current + 1} / ${LB.photos.length}`;
+}
+
+/* ═══════════════════════════════════════════════════
+   AÑADIR FOTO A LA GALERÍA
+   ═══════════════════════════════════════════════════ */
+function addPhotoToGallery(url, publicId) {
+  const gallery = document.getElementById('photosGallery');
+  const emptyEl = document.getElementById('galleryEmpty');
+  if (emptyEl) emptyEl.remove();
+
+  /* Evitar duplicados */
+  if (gallery.querySelector(`[data-pid="${publicId}"]`)) return;
+
+  /* Registrar en el array del lightbox */
+  LB.photos.unshift({ url, publicId });
+
+  const item = document.createElement('div');
+  item.className   = 'gallery-item scroll-fade';
+  item.dataset.pid = publicId;
+
+  const img   = document.createElement('img');
+  img.src     = url;
+  img.alt     = `Foto del bautizo de ${CONFIG.babyName}`;
+  img.loading = 'lazy';
+  img.addEventListener('error', () => { img.src = url; }); /* retry en móvil */
+  item.appendChild(img);
+
+  item.addEventListener('click', () => {
+    const idx = LB.photos.findIndex(p => p.publicId === publicId);
+    openLightbox(idx >= 0 ? idx : 0);
+  });
+
+  gallery.prepend(item);
+  setTimeout(() => item.classList.add('visible'), 50);
+}
 
 /* ═══════════════════════════════════════════════════
    MODO OSCURO / CLARO
@@ -63,13 +180,8 @@ darkModeToggle.addEventListener('click', () => {
   createRippleEffect(darkModeToggle);
 });
 
-/* Cambiar color del toggle con el scroll */
 window.addEventListener('scroll', () => {
-  if (window.scrollY > 200) {
-    darkModeToggle.classList.add('scrolled');
-  } else {
-    darkModeToggle.classList.remove('scrolled');
-  }
+  darkModeToggle.classList.toggle('scrolled', window.scrollY > 200);
 });
 
 function createRippleEffect(el) {
@@ -128,22 +240,18 @@ setInterval(updateCountdown, 1000);
 updateCountdown();
 
 /* ═══════════════════════════════════════════════════
-   GALERÍA DE FOTOS — BLOQUEO / DESBLOQUEO
+   GALERÍA — BLOQUEO / DESBLOQUEO
    ═══════════════════════════════════════════════════ */
 function checkPhotoAccess() {
   const diff = CONFIG.eventDate.getTime() - Date.now();
 
   if (diff <= 0 || TEST_MODE) {
-    /* ── Evento llegó o modo prueba: mostrar galería ── */
     photosLocked.classList.add('hidden');
     photosUnlocked.classList.remove('hidden');
-
-    /* Si es modo prueba, carga fotos de ejemplo */
     if (TEST_MODE) loadTestPhotos();
     return;
   }
 
-  /* ── Actualizar cuenta regresiva del candado ── */
   const d = Math.floor(diff / 86400000);
   const h = Math.floor((diff % 86400000) / 3600000);
   const m = Math.floor((diff %  3600000) / 60000);
@@ -156,18 +264,15 @@ function checkPhotoAccess() {
 setInterval(checkPhotoAccess, 1000);
 checkPhotoAccess();
 
-/* ─── Función llamada desde el botón de prueba en HTML ─── */
 function TEST_unlockGallery() {
   photosLocked.classList.add('hidden');
   photosUnlocked.classList.remove('hidden');
   loadTestPhotos();
-  console.log('%c Modo prueba activado — galería desbloqueada', 'color:#e8b86d;font-size:14px');
 }
 
-/* ─── Fotos de ejemplo para modo prueba ─── */
 function loadTestPhotos() {
   const galleryEmpty = document.getElementById('galleryEmpty');
-  if (!galleryEmpty) return;  // Ya hay fotos, no recargar
+  if (!galleryEmpty) return; /* ya hay fotos, no recargar */
 
   const testPhotos = [
     { url: 'https://picsum.photos/seed/bautizo1/400/400', id: 'test-1' },
@@ -180,27 +285,19 @@ function loadTestPhotos() {
 
   galleryEmpty.remove();
   testPhotos.forEach(({ url, id }) => addPhotoToGallery(url, id));
-  console.log('%c 6 fotos de prueba cargadas en la galería', 'color:#7ba7d8;font-size:13px');
+  console.log('%c6 fotos de prueba cargadas', 'color:#7ba7d8;font-size:13px');
 }
 
 /* ═══════════════════════════════════════════════════
    CLOUDINARY — SUBIDA DE FOTOS
    ═══════════════════════════════════════════════════ */
 function openPhotoUpload() {
-  /* Verificar que Cloudinary esté configurado */
   if (typeof CLOUDINARY_CONFIG === 'undefined') {
-    alert(
-      '⚙️ Cloudinary no está configurado.\n\n' +
-      'Edita models/cloudinary-config.js con tu\n' +
-      'Cloud Name y Upload Preset.\n\n' +
-      'Consulta el README.txt para instrucciones.'
-    );
+    alert('⚙️ Cloudinary no está configurado.\nEdita models/cloudinary-config.js');
     return;
   }
-
-  /* Verificar que el widget esté cargado */
   if (typeof cloudinary === 'undefined') {
-    alert('⚙️ El script de Cloudinary no está cargado. Verifica tu conexión a internet.');
+    alert('⚙️ El script de Cloudinary no está cargado. Verifica tu conexión.');
     return;
   }
 
@@ -213,170 +310,38 @@ function openPhotoUpload() {
       multiple:     true,
       maxFiles:     10,
       clientAllowedFormats: ['jpg','jpeg','png','webp','heic'],
-      maxFileSize:  12000000,    // 12 MB
+      maxFileSize:  12000000,
       showSkipCropButton: true,
-      /* Paleta pastel acorde a la invitación */
       styles: {
         palette: {
-          window:         '#F0F6FF',
-          windowBorder:   '#E8B86D',
-          tabIcon:        '#7BA7D8',
-          menuIcons:      '#5A7898',
-          textDark:       '#2D4870',
-          textLight:      '#FFFFFF',
-          link:           '#4A6FA5',
-          action:         '#E8B86D',
-          inactiveTabIcon:'#AAC8EE',
-          error:          '#F44336',
-          inProgress:     '#7BA7D8',
-          complete:       '#4CAF50',
-          sourceBg:       '#FAFCFF'
+          window:          '#F0F6FF',
+          windowBorder:    '#E8B86D',
+          tabIcon:         '#7BA7D8',
+          menuIcons:       '#5A7898',
+          textDark:        '#2D4870',
+          textLight:       '#FFFFFF',
+          link:            '#4A6FA5',
+          action:          '#E8B86D',
+          inactiveTabIcon: '#AAC8EE',
+          error:           '#F44336',
+          inProgress:      '#7BA7D8',
+          complete:        '#4CAF50',
+          sourceBg:        '#FAFCFF'
         }
       }
     },
     (error, result) => {
-      if (error) {
-        console.error('❌ Cloudinary error:', error);
-        return;
-      }
+      if (error) { console.error('❌ Cloudinary error:', error); return; }
       if (result?.event === 'success') {
         const { secure_url, public_id } = result.info;
-        console.log('✅ Foto subida:', public_id);
         addPhotoToGallery(secure_url, public_id);
-        /* Si Firebase está disponible, guarda también en Firestore */
         if (typeof savePhotoToFirebase === 'function') {
           savePhotoToFirebase(secure_url, public_id);
         }
       }
     }
   );
-
   widget.open();
-}
-
-/* Añadir foto al DOM de la galería */
-/* ═══════════════════════════════════════════════════
-   LIGHTBOX — Array global de fotos para las flechas
-   ═══════════════════════════════════════════════════ */
-const LB = {
-  photos: [],      // { url, publicId }
-  current: 0,      // índice activo
-  el: null,        // elemento .lightbox
-  img: null,       // <img> del lightbox
-  counter: null,   // contador "2 / 8"
-  startX: 0,       // para swipe en móvil
-};
-
-/* Crear el HTML del lightbox una sola vez */
-function initLightbox() {
-  if (document.getElementById('lightbox')) return;
-  const lb = document.createElement('div');
-  lb.id = 'lightbox';
-  lb.className = 'lightbox';
-  lb.innerHTML = `
-    <button class="lb-close" id="lbClose">✕</button>
-    <div class="lightbox-img-wrap">
-      <button class="lb-arrow left"  id="lbPrev">&#8592;</button>
-      <img id="lbImg" src="" alt="Foto del bautizo" />
-      <button class="lb-arrow right" id="lbNext">&#8594;</button>
-    </div>
-    <div class="lb-counter" id="lbCounter"></div>
-  `;
-  document.body.appendChild(lb);
-  LB.el      = lb;
-  LB.img     = document.getElementById('lbImg');
-  LB.counter = document.getElementById('lbCounter');
-
-  document.getElementById('lbClose').addEventListener('click', closeLightbox);
-  document.getElementById('lbPrev').addEventListener('click', () => moveLightbox(-1));
-  document.getElementById('lbNext').addEventListener('click', () => moveLightbox(1));
-
-  /* Cerrar al hacer click en el fondo oscuro */
-  lb.addEventListener('click', e => { if (e.target === lb) closeLightbox(); });
-
-  /* Teclado */
-  document.addEventListener('keydown', e => {
-    if (!lb.classList.contains('active')) return;
-    if (e.key === 'ArrowLeft')  moveLightbox(-1);
-    if (e.key === 'ArrowRight') moveLightbox(1);
-    if (e.key === 'Escape')     closeLightbox();
-  });
-
-  /* Swipe en móvil */
-  lb.addEventListener('touchstart', e => { LB.startX = e.touches[0].clientX; }, { passive:true });
-  lb.addEventListener('touchend',   e => {
-    const diff = LB.startX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) moveLightbox(diff > 0 ? 1 : -1);
-  });
-}
-
-function openLightbox(index) {
-  initLightbox();
-  LB.current = index;
-  updateLightboxImg();
-  LB.el.classList.add('active');
-  document.body.classList.add('lb-open');
-}
-
-function closeLightbox() {
-  if (LB.el) LB.el.classList.remove('active');
-  document.body.classList.remove('lb-open');
-}
-
-function moveLightbox(dir) {
-  LB.current = (LB.current + dir + LB.photos.length) % LB.photos.length;
-  updateLightboxImg();
-}
-
-function updateLightboxImg() {
-  const p = LB.photos[LB.current];
-  if (!p) return;
-  LB.img.src = p.url;
-  LB.counter.textContent = `${LB.current + 1} / ${LB.photos.length}`;
-}
-
-/* ── Añadir foto a la galería ─────────────────────── */
-function addPhotoToGallery(url, publicId) {
-  const gallery = document.getElementById('photosGallery');
-  const emptyEl = document.getElementById('galleryEmpty');
-  if (emptyEl) emptyEl.remove();
-
-  /* Evitar duplicados */
-  if (gallery.querySelector(`[data-pid="${publicId}"]`)) return;
-
-  /* Registrar en el array del lightbox */
-  LB.photos.unshift({ url, publicId });
-
-  const index = 0; /* siempre al frente porque usamos prepend */
-
-  const item = document.createElement('div');
-  item.className   = 'gallery-item scroll-fade';
-  item.dataset.pid = publicId;
-
-  const img   = document.createElement('img');
-  /* Usamos la URL directa — funciona en todos los dispositivos */
-  img.src     = url;
-  img.alt     = `Foto del bautizo de ${CONFIG.babyName}`;
-  img.loading = 'lazy';
-  /* FIX MÓVIL: forzar carga aunque sea lazy */
-  img.addEventListener('error', () => { img.src = url; });
-  item.appendChild(img);
-
-  /* Abrir lightbox al hacer click */
-  item.addEventListener('click', () => {
-    /* Recalcular índice real por si llegaron fotos nuevas */
-    const idx = LB.photos.findIndex(p => p.publicId === publicId);
-    openLightbox(idx >= 0 ? idx : 0);
-  });
-
-  gallery.prepend(item);
-  /* Recalcular índices tras prepend */
-  LB.photos.forEach((p, i) => {
-    const el = gallery.querySelector(`[data-pid="${p.publicId}"]`);
-    if (el) el.dataset.lbIndex = i;
-  });
-
-  setTimeout(() => item.classList.add('visible'), 50);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -403,14 +368,10 @@ document.addEventListener('keydown', e => {
    ═══════════════════════════════════════════════════ */
 rsvpForm.addEventListener('submit', e => {
   e.preventDefault();
-
   const nombre   = document.getElementById('guestName').value.trim();
   const cantidad = document.getElementById('guestCount').value;
 
-  if (!nombre || !cantidad) {
-    alert('Por favor completa todos los campos.');
-    return;
-  }
+  if (!nombre || !cantidad) { alert('Por favor completa todos los campos.'); return; }
 
   const msg = encodeURIComponent(
     `¡Hola! \n\n` +
@@ -419,7 +380,6 @@ rsvpForm.addEventListener('submit', e => {
     `Seremos ${cantidad} personas.\n\n` +
     `¡Nos vemos el 25 de abril! `
   );
-
   window.open(`https://wa.me/${CONFIG.whatsappNumber}?text=${msg}`, '_blank');
 
   setTimeout(() => {
@@ -430,7 +390,6 @@ rsvpForm.addEventListener('submit', e => {
   }, 500);
 });
 
-/* Validación en tiempo real */
 document.querySelectorAll('.form-group input, .form-group select').forEach(input => {
   ['blur','input'].forEach(ev =>
     input.addEventListener(ev, () => {
@@ -450,7 +409,6 @@ document.querySelectorAll('.form-group input, .form-group select').forEach(input
    CONFETI
    ═══════════════════════════════════════════════════ */
 function createConfetti() {
-  /* Paleta pastel + dorado para el confeti */
   const colors = ['#e8b86d','#7ba7d8','#f5d49a','#d0c4f0','#f4c2d4','#b8e8d8','#aac8ee'];
   for (let i = 0; i < 90; i++) {
     setTimeout(() => {
@@ -463,7 +421,6 @@ function createConfetti() {
         borderRadius: Math.random() > .5 ? '50%' : '2px',
         zIndex:'9999', pointerEvents:'none',
         transform:`rotate(${Math.random()*360}deg)`,
-        boxShadow:'0 2px 6px rgba(0,0,0,.15)'
       });
       document.body.appendChild(c);
       const dur = Math.random()*3+2;
@@ -477,13 +434,11 @@ function createConfetti() {
 }
 
 /* ═══════════════════════════════════════════════════
-   SCROLL ANIMATIONS (Intersection Observer)
+   SCROLL ANIMATIONS
    ═══════════════════════════════════════════════════ */
 function initScrollAnimations() {
   const els = document.querySelectorAll('.scroll-fade');
 
-  /* Si el navegador no soporta IntersectionObserver (raro pero posible),
-     hacemos visibles todos los elementos de inmediato */
   if (!('IntersectionObserver' in window)) {
     els.forEach(el => el.classList.add('visible'));
     return;
@@ -491,19 +446,11 @@ function initScrollAnimations() {
 
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        obs.unobserve(e.target);
-      }
+      if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
     });
-  }, {
-    threshold: 0,          /* dispara en cuanto el borde toca la pantalla */
-    rootMargin: '0px 0px -40px 0px'
-  });
+  }, { threshold: 0, rootMargin: '0px 0px -40px 0px' });
 
   els.forEach(el => {
-    /* Si el elemento ya está dentro del viewport al cargar
-       (ocurre mucho en móvil con pantallas largas), hacerlo visible ya */
     const rect = el.getBoundingClientRect();
     if (rect.top < window.innerHeight) {
       el.classList.add('visible');
@@ -514,11 +461,9 @@ function initScrollAnimations() {
 }
 initScrollAnimations();
 
-/* Re-verificar visibilidad al hacer scroll (fallback extra para móvil) */
 window.addEventListener('scroll', () => {
   document.querySelectorAll('.scroll-fade:not(.visible)').forEach(el => {
-    const rect = el.getBoundingClientRect();
-    if (rect.top < window.innerHeight - 40) {
+    if (el.getBoundingClientRect().top < window.innerHeight - 40) {
       el.classList.add('visible');
     }
   });
@@ -540,7 +485,7 @@ document.querySelectorAll('.card-3d').forEach(card => {
 });
 
 /* ═══════════════════════════════════════════════════
-   PARTÍCULAS FLOTANTES (dorado + pastel)
+   PARTÍCULAS FLOTANTES
    ═══════════════════════════════════════════════════ */
 const pCtx = particlesEl.getContext('2d');
 
@@ -552,11 +497,7 @@ resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 const PARTICLE_COLORS = [
-  [232,184,109],  // dorado
-  [170,200,238],  // azul pastel
-  [208,196,240],  // lavanda
-  [244,194,212],  // rosa pastel
-  [184,232,216],  // menta
+  [232,184,109],[170,200,238],[208,196,240],[244,194,212],[184,232,216],
 ];
 
 class Particle {
@@ -579,16 +520,10 @@ class Particle {
     const [r,g,b] = this.rgb;
     const color   = `rgba(${r},${g},${b},${this.opacity})`;
     pCtx.save();
-    pCtx.fillStyle   = color;
-    pCtx.shadowBlur  = 6;
-    pCtx.shadowColor = color;
-    pCtx.beginPath();
-    pCtx.arc(this.x, this.y, this.size, 0, Math.PI*2);
-    pCtx.fill();
+    pCtx.fillStyle = color; pCtx.shadowBlur = 6; pCtx.shadowColor = color;
+    pCtx.beginPath(); pCtx.arc(this.x, this.y, this.size, 0, Math.PI*2); pCtx.fill();
     pCtx.fillStyle = `rgba(255,255,255,${this.opacity*.4})`;
-    pCtx.beginPath();
-    pCtx.arc(this.x, this.y, this.size*.4, 0, Math.PI*2);
-    pCtx.fill();
+    pCtx.beginPath(); pCtx.arc(this.x, this.y, this.size*.4, 0, Math.PI*2); pCtx.fill();
     pCtx.restore();
   }
 }
@@ -600,20 +535,15 @@ const pArr = Array.from({ length: window.innerWidth < 768 ? 50 : 100 }, () => ne
   requestAnimationFrame(animP);
 })();
 
-/* ═══════════════════════════════════════════════════
-   PROTECCIÓN DE IMÁGENES
-   ═══════════════════════════════════════════════════ */
+/* ─── Protección de imágenes ─────────────────────── */
 document.addEventListener('contextmenu', e => { if (e.target.tagName==='IMG') e.preventDefault(); });
 document.addEventListener('dragstart',   e => { if (e.target.tagName==='IMG') e.preventDefault(); });
 
-/* ═══════════════════════════════════════════════════
-   CONSOLA DE BIENVENIDA
-   ═══════════════════════════════════════════════════ */
+/* ─── Consola ────────────────────────────────────── */
 console.log('%c Bautizo de Daniel De Angel Rosales', 'color:#e8b86d;font-size:20px;font-weight:bold');
-console.log('%c✦ 25 de Abril · 2026',                 'color:#7ba7d8;font-size:14px');
+console.log('%c✦ 25 de Abril · 2026', 'color:#7ba7d8;font-size:14px');
 console.log(
-  TEST_MODE
-    ? '%cModo prueba ACTIVO — recuerda desactivarlo antes de publicar'
-    : '%cInvitación lista para producción',
+  TEST_MODE ? '%cModo prueba ACTIVO — pon TEST_MODE=false antes de publicar'
+            : '%cInvitación lista para producción',
   TEST_MODE ? 'color:#f44336;font-size:12px' : 'color:#4caf50;font-size:12px'
 );
