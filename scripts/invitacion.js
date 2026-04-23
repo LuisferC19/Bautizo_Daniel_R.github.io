@@ -272,20 +272,20 @@ function TEST_unlockGallery() {
 
 function loadTestPhotos() {
   const galleryEmpty = document.getElementById('galleryEmpty');
-  if (!galleryEmpty) return; /* ya hay fotos, no recargar */
+  if (!galleryEmpty) return;
 
   const testPhotos = [
-    { url: 'https://picsum.photos/seed/bautizo1/400/400', id: 'test-1' },
-    { url: 'https://picsum.photos/seed/bautizo2/400/400', id: 'test-2' },
-    { url: 'https://picsum.photos/seed/bautizo3/400/400', id: 'test-3' },
-    { url: 'https://picsum.photos/seed/bautizo4/400/400', id: 'test-4' },
-    { url: 'https://picsum.photos/seed/bautizo5/400/400', id: 'test-5' },
-    { url: 'https://picsum.photos/seed/bautizo6/400/400', id: 'test-6' },
+    { url: 'imagenes/foto1.jpg', id: 'local-1' },
+    { url: 'imagenes/foto2.jpg', id: 'local-2' },
+    { url: 'imagenes/foto3.jpg', id: 'local-3' },
+    { url: 'imagenes/foto4.jpg', id: 'local-4' },
+    { url: 'imagenes/foto5.jpg', id: 'local-5' },
+    { url: 'imagenes/foto6.jpg', id: 'local-6' },
   ];
 
   galleryEmpty.remove();
   testPhotos.forEach(({ url, id }) => addPhotoToGallery(url, id));
-  console.log('%c6 fotos de prueba cargadas', 'color:#7ba7d8;font-size:13px');
+  console.log('%c6 fotos locales cargadas', 'color:#7ba7d8;font-size:13px');
 }
 
 /* ═══════════════════════════════════════════════════
