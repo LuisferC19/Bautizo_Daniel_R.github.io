@@ -32,14 +32,15 @@
       <div class="music-player-inner">
         <div class="music-info">
           <span class="music-note-icon">🎵</span>
-          <span class="music-label">Música del Bautizo de Daniel</span>
+          <span class="music-label"></span>
         </div>
 
         <audio
           id="music"
           controls
           loop
-          preload="metadata"
+          autoplay
+          preload="auto"
           class="music-audio-control"
         >
           <source src="musica/MusicaDeFondo.mp3" type="audio/mpeg" />
@@ -380,12 +381,11 @@
           Descomenta para simular galería desbloqueada.
           Comenta de nuevo antes de publicar.
           ════════════════════════════════════════
-        -->
-        <!--  <button onclick="TEST_unlockGallery()" class="test-btn">
+          <button onclick="TEST_unlockGallery()" class="test-btn">
             🧪 Probar galería ahora
           </button>
-        </div>
--->
+          -->
+        </div><!-- /photos-locked -->
         <!-- ESTADO DESBLOQUEADO -->
         <div class="photos-unlocked hidden" id="photosUnlocked">
           <button class="upload-btn" id="uploadBtn" onclick="openPhotoUpload()">

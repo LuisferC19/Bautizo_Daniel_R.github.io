@@ -29,7 +29,7 @@ const CONFIG = {
    ya llegó y probar la galería de fotos sin esperar.
    Recuerda ponerlo en false antes de publicar.
    ═══════════════════════════════════════════════════ */
-const TEST_MODE = false;
+const TEST_MODE = true;
 
 /* ═══════════════════════════════════════════════════
    REFERENCIAS DOM
@@ -45,8 +45,41 @@ const particlesEl    = document.getElementById('particles');
 const music          = document.getElementById('music');
 
 /* ═══════════════════════════════════════════════════
-   MODO OSCURO / CLARO
+   🎵 AUTOPLAY DE MÚSICA
+   Los navegadores modernos bloquean autoplay sin
+   interacción previa del usuario. La estrategia es:
+   1. Intentar reproducir inmediatamente (funciona en
+      algunos navegadores / si el usuario ya visitó antes)
+   2. Si falla, esperar el primer toque/click y reproducir
    ═══════════════════════════════════════════════════ */
+(function initAutoplay() {
+  if (!music) return;
+
+  // Volumen inicial al 70% para no asustar al usuario
+  music.volume = 0.7;
+
+  // Intento 1: reproducir de inmediato
+  const playPromise = music.play();
+
+  if (playPromise !== undefined) {
+    playPromise.catch(() => {
+      // El navegador bloqueó autoplay — esperamos primer gesto
+      const startOnInteraction = () => {
+        music.play().catch(() => {});
+        document.removeEventListener('click',      startOnInteraction);
+        document.removeEventListener('touchstart', startOnInteraction);
+        document.removeEventListener('keydown',    startOnInteraction);
+        document.removeEventListener('scroll',     startOnInteraction);
+      };
+      document.addEventListener('click',      startOnInteraction, { once: true });
+      document.addEventListener('touchstart', startOnInteraction, { once: true });
+      document.addEventListener('keydown',    startOnInteraction, { once: true });
+      document.addEventListener('scroll',     startOnInteraction, { once: true, passive: true });
+    });
+  }
+})();
+
+
 const prefersDark  = window.matchMedia('(prefers-color-scheme: dark)').matches;
 const savedTheme   = localStorage.getItem('bautizo-daniel-theme');
 const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
