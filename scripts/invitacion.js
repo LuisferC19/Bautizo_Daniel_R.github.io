@@ -29,7 +29,7 @@ const CONFIG = {
    ya llegó y probar la galería de fotos sin esperar.
    Recuerda ponerlo en false antes de publicar.
    ═══════════════════════════════════════════════════ */
-const TEST_MODE = false;
+const TEST_MODE = true;
 
 /* ═══════════════════════════════════════════════════
    REFERENCIAS DOM
