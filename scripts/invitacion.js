@@ -29,7 +29,7 @@ const CONFIG = {
    ya llegó y probar la galería de fotos sin esperar.
    Recuerda ponerlo en false antes de publicar.
    ═══════════════════════════════════════════════════ */
-const TEST_MODE = true;
+const TEST_MODE = false;
 
 /* ═══════════════════════════════════════════════════
    REFERENCIAS DOM
@@ -45,41 +45,8 @@ const particlesEl    = document.getElementById('particles');
 const music          = document.getElementById('music');
 
 /* ═══════════════════════════════════════════════════
-   🎵 AUTOPLAY DE MÚSICA
-   Los navegadores modernos bloquean autoplay sin
-   interacción previa del usuario. La estrategia es:
-   1. Intentar reproducir inmediatamente (funciona en
-      algunos navegadores / si el usuario ya visitó antes)
-   2. Si falla, esperar el primer toque/click y reproducir
+   MODO OSCURO / CLARO
    ═══════════════════════════════════════════════════ */
-(function initAutoplay() {
-  if (!music) return;
-
-  // Volumen inicial al 70% para no asustar al usuario
-  music.volume = 0.7;
-
-  // Intento 1: reproducir de inmediato
-  const playPromise = music.play();
-
-  if (playPromise !== undefined) {
-    playPromise.catch(() => {
-      // El navegador bloqueó autoplay — esperamos primer gesto
-      const startOnInteraction = () => {
-        music.play().catch(() => {});
-        document.removeEventListener('click',      startOnInteraction);
-        document.removeEventListener('touchstart', startOnInteraction);
-        document.removeEventListener('keydown',    startOnInteraction);
-        document.removeEventListener('scroll',     startOnInteraction);
-      };
-      document.addEventListener('click',      startOnInteraction, { once: true });
-      document.addEventListener('touchstart', startOnInteraction, { once: true });
-      document.addEventListener('keydown',    startOnInteraction, { once: true });
-      document.addEventListener('scroll',     startOnInteraction, { once: true, passive: true });
-    });
-  }
-})();
-
-
 const prefersDark  = window.matchMedia('(prefers-color-scheme: dark)').matches;
 const savedTheme   = localStorage.getItem('bautizo-daniel-theme');
 const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
@@ -288,25 +255,127 @@ function openPhotoUpload() {
 }
 
 /* Añadir foto al DOM de la galería */
+/* ═══════════════════════════════════════════════════
+   LIGHTBOX — Array global de fotos para las flechas
+   ═══════════════════════════════════════════════════ */
+const LB = {
+  photos: [],      // { url, publicId }
+  current: 0,      // índice activo
+  el: null,        // elemento .lightbox
+  img: null,       // <img> del lightbox
+  counter: null,   // contador "2 / 8"
+  startX: 0,       // para swipe en móvil
+};
+
+/* Crear el HTML del lightbox una sola vez */
+function initLightbox() {
+  if (document.getElementById('lightbox')) return;
+  const lb = document.createElement('div');
+  lb.id = 'lightbox';
+  lb.className = 'lightbox';
+  lb.innerHTML = `
+    <button class="lb-close" id="lbClose">✕</button>
+    <div class="lightbox-img-wrap">
+      <button class="lb-arrow left"  id="lbPrev">&#8592;</button>
+      <img id="lbImg" src="" alt="Foto del bautizo" />
+      <button class="lb-arrow right" id="lbNext">&#8594;</button>
+    </div>
+    <div class="lb-counter" id="lbCounter"></div>
+  `;
+  document.body.appendChild(lb);
+  LB.el      = lb;
+  LB.img     = document.getElementById('lbImg');
+  LB.counter = document.getElementById('lbCounter');
+
+  document.getElementById('lbClose').addEventListener('click', closeLightbox);
+  document.getElementById('lbPrev').addEventListener('click', () => moveLightbox(-1));
+  document.getElementById('lbNext').addEventListener('click', () => moveLightbox(1));
+
+  /* Cerrar al hacer click en el fondo oscuro */
+  lb.addEventListener('click', e => { if (e.target === lb) closeLightbox(); });
+
+  /* Teclado */
+  document.addEventListener('keydown', e => {
+    if (!lb.classList.contains('active')) return;
+    if (e.key === 'ArrowLeft')  moveLightbox(-1);
+    if (e.key === 'ArrowRight') moveLightbox(1);
+    if (e.key === 'Escape')     closeLightbox();
+  });
+
+  /* Swipe en móvil */
+  lb.addEventListener('touchstart', e => { LB.startX = e.touches[0].clientX; }, { passive:true });
+  lb.addEventListener('touchend',   e => {
+    const diff = LB.startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) moveLightbox(diff > 0 ? 1 : -1);
+  });
+}
+
+function openLightbox(index) {
+  initLightbox();
+  LB.current = index;
+  updateLightboxImg();
+  LB.el.classList.add('active');
+  document.body.classList.add('lb-open');
+}
+
+function closeLightbox() {
+  if (LB.el) LB.el.classList.remove('active');
+  document.body.classList.remove('lb-open');
+}
+
+function moveLightbox(dir) {
+  LB.current = (LB.current + dir + LB.photos.length) % LB.photos.length;
+  updateLightboxImg();
+}
+
+function updateLightboxImg() {
+  const p = LB.photos[LB.current];
+  if (!p) return;
+  LB.img.src = p.url;
+  LB.counter.textContent = `${LB.current + 1} / ${LB.photos.length}`;
+}
+
+/* ── Añadir foto a la galería ─────────────────────── */
 function addPhotoToGallery(url, publicId) {
-  const gallery  = document.getElementById('photosGallery');
-  const emptyEl  = document.getElementById('galleryEmpty');
+  const gallery = document.getElementById('photosGallery');
+  const emptyEl = document.getElementById('galleryEmpty');
   if (emptyEl) emptyEl.remove();
 
   /* Evitar duplicados */
   if (gallery.querySelector(`[data-pid="${publicId}"]`)) return;
 
+  /* Registrar en el array del lightbox */
+  LB.photos.unshift({ url, publicId });
+
+  const index = 0; /* siempre al frente porque usamos prepend */
+
   const item = document.createElement('div');
-  item.className        = 'gallery-item scroll-fade';
-  item.dataset.pid      = publicId;
+  item.className   = 'gallery-item scroll-fade';
+  item.dataset.pid = publicId;
 
   const img   = document.createElement('img');
+  /* Usamos la URL directa — funciona en todos los dispositivos */
   img.src     = url;
   img.alt     = `Foto del bautizo de ${CONFIG.babyName}`;
   img.loading = 'lazy';
+  /* FIX MÓVIL: forzar carga aunque sea lazy */
+  img.addEventListener('error', () => { img.src = url; });
   item.appendChild(img);
 
+  /* Abrir lightbox al hacer click */
+  item.addEventListener('click', () => {
+    /* Recalcular índice real por si llegaron fotos nuevas */
+    const idx = LB.photos.findIndex(p => p.publicId === publicId);
+    openLightbox(idx >= 0 ? idx : 0);
+  });
+
   gallery.prepend(item);
+  /* Recalcular índices tras prepend */
+  LB.photos.forEach((p, i) => {
+    const el = gallery.querySelector(`[data-pid="${p.publicId}"]`);
+    if (el) el.dataset.lbIndex = i;
+  });
+
   setTimeout(() => item.classList.add('visible'), 50);
 }
 
