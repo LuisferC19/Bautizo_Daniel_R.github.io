@@ -480,6 +480,15 @@ function createConfetti() {
    SCROLL ANIMATIONS (Intersection Observer)
    ═══════════════════════════════════════════════════ */
 function initScrollAnimations() {
+  const els = document.querySelectorAll('.scroll-fade');
+
+  /* Si el navegador no soporta IntersectionObserver (raro pero posible),
+     hacemos visibles todos los elementos de inmediato */
+  if (!('IntersectionObserver' in window)) {
+    els.forEach(el => el.classList.add('visible'));
+    return;
+  }
+
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => {
       if (e.isIntersecting) {
@@ -487,10 +496,33 @@ function initScrollAnimations() {
         obs.unobserve(e.target);
       }
     });
-  }, { threshold:.1 });
-  document.querySelectorAll('.scroll-fade').forEach(el => obs.observe(el));
+  }, {
+    threshold: 0,          /* dispara en cuanto el borde toca la pantalla */
+    rootMargin: '0px 0px -40px 0px'
+  });
+
+  els.forEach(el => {
+    /* Si el elemento ya está dentro del viewport al cargar
+       (ocurre mucho en móvil con pantallas largas), hacerlo visible ya */
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight) {
+      el.classList.add('visible');
+    } else {
+      obs.observe(el);
+    }
+  });
 }
 initScrollAnimations();
+
+/* Re-verificar visibilidad al hacer scroll (fallback extra para móvil) */
+window.addEventListener('scroll', () => {
+  document.querySelectorAll('.scroll-fade:not(.visible)').forEach(el => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight - 40) {
+      el.classList.add('visible');
+    }
+  });
+}, { passive: true });
 
 /* ═══════════════════════════════════════════════════
    EFECTO 3D EN TARJETAS

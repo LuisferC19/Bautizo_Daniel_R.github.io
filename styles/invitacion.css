@@ -199,10 +199,17 @@ body::before {
 /* ── Scroll animations ───────────────────────────── */
 .scroll-fade {
   opacity:0;
-  transform:translateY(36px) scale(.97);
-  transition: all .9s cubic-bezier(.4,0,.2,1);
+  transform:translateY(28px) scale(.98);
+  transition: opacity .8s cubic-bezier(.4,0,.2,1),
+              transform .8s cubic-bezier(.4,0,.2,1);
 }
 .scroll-fade.visible { opacity:1; transform:translateY(0) scale(1); }
+
+/* En móvil: reducir el desplazamiento inicial para que el Observer
+   los pesque más fácil y nunca queden invisible por error */
+@media (max-width: 768px) {
+  .scroll-fade { transform:translateY(14px); }
+}
 
 /* ── Puntos decorativos ──────────────────────────── */
 .decoration-top { display:flex; justify-content:center; gap:26px; margin-bottom:26px; }
